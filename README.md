@@ -73,5 +73,9 @@ This project is open-source and welcomes contributions from the security communi
 MIT License - Free for everyone to use and contribute.
 
 ---
+
+<img width="663" alt="Screenshot 2025-06-18 at 2 22 51 PM" src="https://github.com/user-attachments/assets/f37e3f50-7c25-4550-9897-ef747b464797" />
+
+
 any prob then open an issues by clicking on issues button oke doke!
 *Built for digital privacy and security*
