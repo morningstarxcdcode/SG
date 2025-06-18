@@ -1,0 +1,312 @@
+name: 📱 Mobile App Build & Deploy
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'mobile/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'mobile/**' ]
+
+env:
+  NODE_VERSION: '18'
+  EXPO_CLI_VERSION: '6.3.0'
+
+jobs:
+  # Mobile App Linting
+  mobile-lint:
+    name: 📱 Mobile App Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 📥 Install Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 🔍 Run ESLint
+        run: |
+          cd mobile
+          npm run lint
+
+      - name: 💅 Check Prettier formatting
+        run: |
+          cd mobile
+          npx prettier --check "src/**/*.{js,jsx,ts,tsx}"
+
+  # Mobile App Testing
+  mobile-test:
+    name: 🧪 Mobile App Tests
+    runs-on: ubuntu-latest
+    needs: mobile-lint
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 🧪 Run tests
+        run: |
+          cd mobile
+          npm test -- --coverage --watchAll=false
+
+      - name: 📊 Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./mobile/coverage/lcov.info
+          flags: mobile
+
+  # Expo Build (Development)
+  expo-build-dev:
+    name: 🏗️ Expo Development Build
+    runs-on: ubuntu-latest
+    needs: mobile-test
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 📥 Install Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 🔧 Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: ${{ env.EXPO_CLI_VERSION }}
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🏗️ Build development bundle
+        run: |
+          cd mobile
+          expo export --platform all --output-dir ./dist
+          
+      - name: 📊 Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: expo-dev-build
+          path: mobile/dist/
+
+  # Expo Build (Production)
+  expo-build-prod:
+    name: 🏗️ Expo Production Build
+    runs-on: ubuntu-latest
+    needs: mobile-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    strategy:
+      matrix:
+        platform: [android, ios]
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 📥 Install Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 🔧 Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: ${{ env.EXPO_CLI_VERSION }}
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🏗️ Build for ${{ matrix.platform }}
+        run: |
+          cd mobile
+          expo build:${{ matrix.platform }} --non-interactive --no-publish
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📊 Upload ${{ matrix.platform }} build
+        uses: actions/upload-artifact@v3
+        with:
+          name: expo-${{ matrix.platform }}-build
+          path: mobile/dist/
+
+  # EAS Build (Modern Expo builds)
+  eas-build:
+    name: 🚀 EAS Build
+    runs-on: ubuntu-latest
+    needs: mobile-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    strategy:
+      matrix:
+        platform: [android, ios]
+        profile: [development, preview, production]
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 🔧 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 🏗️ Build with EAS
+        run: |
+          cd mobile
+          eas build --platform ${{ matrix.platform }} --profile ${{ matrix.profile }} --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  # App Store Deployment
+  deploy-stores:
+    name: 🚀 Deploy to App Stores
+    runs-on: ubuntu-latest
+    needs: [expo-build-prod]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy]')
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: ${{ env.EXPO_CLI_VERSION }}
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📱 Submit to Google Play
+        run: |
+          cd mobile
+          expo submit:android --latest --verbose
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.EXPO_ANDROID_KEYSTORE_PASSWORD }}
+          EXPO_ANDROID_KEY_PASSWORD: ${{ secrets.EXPO_ANDROID_KEY_PASSWORD }}
+
+      - name: 🍎 Submit to App Store
+        run: |
+          cd mobile
+          expo submit:ios --latest --verbose
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+          EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_APP_SPECIFIC_PASSWORD }}
+
+  # Mobile Security Testing
+  mobile-security:
+    name: 🔐 Mobile Security Testing
+    runs-on: ubuntu-latest
+    needs: mobile-test
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 🔍 Security audit
+        run: |
+          cd mobile
+          npm audit --audit-level moderate
+
+      - name: 🔐 Check for hardcoded secrets
+        run: |
+          cd mobile
+          grep -r -i "password\|secret\|key\|token" src/ --exclude-dir=node_modules || echo "No hardcoded secrets found"
+
+  # Performance Testing
+  mobile-performance:
+    name: 🚀 Mobile Performance Testing
+    runs-on: ubuntu-latest
+    needs: mobile-test
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: 📊 Bundle size analysis
+        run: |
+          cd mobile
+          npx expo export --platform all --output-dir ./dist
+          du -sh ./dist/
+          find ./dist/ -name "*.js" -exec wc -c {} + | sort -n
+
+      - name: 📊 Upload bundle analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: mobile-bundle-analysis
+          path: mobile/dist/

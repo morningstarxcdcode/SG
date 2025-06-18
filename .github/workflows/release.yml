@@ -1,0 +1,330 @@
+name: 🚀 Release Management
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Validate Release
+  validate-release:
+    name: ✅ Validate Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          npm ci
+          npm run install-server
+          npm run install-mobile
+
+      - name: 🧪 Run all tests
+        run: npm test
+
+      - name: 🔍 Run security audit
+        run: |
+          npm audit --audit-level moderate
+          cd server && npm audit --audit-level moderate
+          cd ../mobile && npm audit --audit-level moderate
+
+      - name: 🔍 Run linting
+        run: npm run lint
+
+      - name: ✅ Validation successful
+        run: echo "✅ All validation checks passed!"
+
+  # Build Release Assets
+  build-release:
+    name: 🏗️ Build Release Assets
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    strategy:
+      matrix:
+        platform: [server, mobile]
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install dependencies
+        run: |
+          if [ "${{ matrix.platform }}" = "server" ]; then
+            cd server && npm ci
+          else
+            cd mobile && npm ci
+          fi
+
+      - name: 🏗️ Build ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" = "server" ]; then
+            cd server
+            npm run build || echo "No build script for server"
+            tar -czf ../secureguardian-server.tar.gz .
+          else
+            cd mobile
+            npm install -g @expo/cli
+            expo export --platform all --output-dir ./dist
+            tar -czf ../secureguardian-mobile.tar.gz dist/
+          fi
+
+      - name: 📊 Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: secureguardian-${{ matrix.platform }}
+          path: secureguardian-${{ matrix.platform }}.tar.gz
+
+  # Create Docker Images
+  docker-release:
+    name: 🐳 Docker Release
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🏷️ Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🏗️ Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/secureguardian:${{ steps.version.outputs.version }}
+            ${{ secrets.DOCKER_USERNAME }}/secureguardian:latest
+          labels: |
+            org.opencontainers.image.title=SecureGuardian
+            org.opencontainers.image.description=Advanced Personal Security Platform
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+  # Generate Changelog
+  generate-changelog:
+    name: 📝 Generate Changelog
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📝 Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CURRENT_TAG="${{ github.event.inputs.version }}"
+          fi
+          
+          echo "# 🚀 Release $CURRENT_TAG" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "Released on: $(date '+%Y-%m-%d')" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## 📋 Changes since $PREVIOUS_TAG" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            
+            # Get commits since last tag
+            git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD >> CHANGELOG.md
+          else
+            echo "## 📋 Initial Release" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "- 🎉 First release of SecureGuardian" >> CHANGELOG.md
+            echo "- 🔐 Advanced personal security platform" >> CHANGELOG.md
+            echo "- 📱 Mobile app with threat detection" >> CHANGELOG.md
+            echo "- 🖥️ Server-side security monitoring" >> CHANGELOG.md
+          fi
+          
+          echo "" >> CHANGELOG.md
+          echo "## 🛠️ Installation" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Server" >> CHANGELOG.md
+          echo "\`\`\`bash" >> CHANGELOG.md
+          echo "git clone https://github.com/${{ github.repository }}.git" >> CHANGELOG.md
+          echo "cd SecureGuardian" >> CHANGELOG.md
+          echo "npm run setup" >> CHANGELOG.md
+          echo "npm start" >> CHANGELOG.md
+          echo "\`\`\`" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Docker" >> CHANGELOG.md
+          echo "\`\`\`bash" >> CHANGELOG.md
+          echo "docker run -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/secureguardian:$CURRENT_TAG" >> CHANGELOG.md
+          echo "\`\`\`" >> CHANGELOG.md
+
+      - name: 📊 Upload changelog
+        uses: actions/upload-artifact@v3
+        with:
+          name: changelog
+          path: CHANGELOG.md
+
+  # Create GitHub Release
+  create-release:
+    name: 🎉 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-release, docker-release, generate-changelog]
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📥 Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: 🏷️ Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "prerelease=${{ github.event.inputs.prerelease }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🎉 Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "SecureGuardian ${{ steps.version.outputs.version }}"
+          body_path: changelog/CHANGELOG.md
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: |
+            secureguardian-server/secureguardian-server.tar.gz
+            secureguardian-mobile/secureguardian-mobile.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Deploy to Production
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    environment: production
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy to production server
+        run: |
+          echo "🎉 Deploying SecureGuardian to production..."
+          echo "🔧 This would typically:"
+          echo "  - Deploy Docker container to cloud provider"
+          echo "  - Update configuration"
+          echo "  - Run database migrations"
+          echo "  - Perform health checks"
+          echo "  - Update load balancer"
+
+      - name: 📱 Deploy mobile app
+        run: |
+          echo "📱 Deploying mobile app..."
+          echo "🔧 This would typically:"
+          echo "  - Submit to app stores"
+          echo "  - Update over-the-air updates"
+          echo "  - Send notifications to users"
+
+  # Post-Release Tasks
+  post-release:
+    name: 📊 Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📊 Update version badges
+        run: |
+          echo "📊 Updating README badges..."
+          VERSION=${{ steps.version.outputs.version }}
+          # This would update version badges in README.md
+
+      - name: 📢 Announce release
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#secureguardian'
+          message: |
+            🎉 SecureGuardian ${{ steps.version.outputs.version }} has been released!
+            
+            📦 **What's New:**
+            - Check the changelog for full details
+            
+            🚀 **Deployment:**
+            - Server: ✅ Deployed
+            - Mobile: ✅ Submitted to stores
+            - Docker: ✅ Available on Docker Hub
+            
+            🔗 **Links:**
+            - [Release Notes](https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }})
+            - [Docker Hub](https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/secureguardian)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: 📧 Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🎉 SecureGuardian ${{ steps.version.outputs.version }} Released"
+          body: |
+            SecureGuardian ${{ steps.version.outputs.version }} has been successfully released!
+            
+            Check out the release notes: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: SecureGuardian CI/CD

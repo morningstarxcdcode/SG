@@ -1,223 +1,135 @@
-# 🚀 SecureGuardian GitHub Actions Workflows
+# GitHub Actions Secret Configuration Guide
 
-This directory contains advanced GitHub Actions workflows specifically designed for the SecureGuardian security monitoring platform. These workflows implement a comprehensive CI/CD pipeline with security-first principles.
+This document outlines the secrets that need to be configured in your GitHub repository for the automated workflows to function properly.
 
-## 📋 Workflow Overview
+## 🔐 Required Secrets
 
-### 1. 🛡️ Main CI/CD Pipeline (`main-ci-cd.yml`)
-**Triggers**: Push to main/develop, Pull requests
-- **Security vulnerability scanning** with Trivy and Snyk
-- **Code quality analysis** with SonarCloud
-- **Server testing** with MongoDB and Redis services
-- **Mobile app building** with Expo
-- **AI threat detection testing** with Python ML tests
-- **Docker image building** with security scanning
-- **Performance testing** with Artillery.js
-- **Automated deployment** to staging and production
+Navigate to your repository → Settings → Secrets and variables → Actions → New repository secret
 
-### 2. 🔐 Security Monitoring (`security-monitoring.yml`)
-**Triggers**: Daily schedule, security-related file changes
-- **Dependency security audits** for all project components
-- **Secrets scanning** with TruffleHog and custom patterns
-- **Static Application Security Testing (SAST)** with CodeQL and Semgrep
-- **Infrastructure security validation**
-- **Threat model validation**
-- **Comprehensive security reporting** with automated issue creation
-
-### 3. 📱 Mobile CI/CD (`mobile-ci-cd.yml`)
-**Triggers**: Changes to mobile app, manual dispatch
-- **Mobile code quality** checks with ESLint and TypeScript
-- **Mobile security analysis** for React Native best practices
-- **Expo build management** for preview and production
-- **Performance testing** for bundle size and optimization
-- **Accessibility testing** compliance
-- **Mobile deployment** automation
-
-### 4. 🔄 Dependency Management (`dependency-management.yml`)
-**Triggers**: Weekly schedule, manual dispatch
-- **Automated dependency auditing** across all components
-- **Security vulnerability detection** and patching
-- **Automated dependency updates** with testing
-- **Integration testing** after updates
-- **Pull request creation** for dependency updates
-- **Security team notifications**
-
-### 5. ⚡ Performance Monitoring (`performance-monitoring.yml`)
-**Triggers**: Daily schedule, performance-related changes
-- **Backend performance analysis** with API testing
-- **Database performance testing** with MongoDB
-- **Mobile bundle analysis** and optimization
-- **Load and stress testing** with realistic scenarios
-- **Memory usage analysis** and optimization
-- **Performance regression detection**
-
-### 6. 🚀 Release & Deployment (`release-deployment.yml`)
-**Triggers**: Version tags, manual release dispatch
-- **Automated version management** with semantic versioning
-- **Changelog generation** with categorized commits
-- **Multi-platform Docker builds** with security scanning
-- **Staging deployment** with smoke tests
-- **Production deployment** with health checks
-- **GitHub release creation** with assets
-
-## 🔧 Setup Requirements
-
-### Required Secrets
-Add these secrets to your GitHub repository:
-
-```bash
-# Security Scanning
-SNYK_TOKEN=your_snyk_token
-SONAR_TOKEN=your_sonarcloud_token
-
-# Container Registry
-GITHUB_TOKEN=automatic_github_token
-
-# Mobile Deployment (optional)
-EXPO_TOKEN=your_expo_token
-
-# Notifications (optional)
-SLACK_WEBHOOK=your_slack_webhook
-DISCORD_WEBHOOK=your_discord_webhook
+### Docker Hub Integration
+```
+DOCKER_USERNAME=your-dockerhub-username
+DOCKER_PASSWORD=your-dockerhub-password-or-token
 ```
 
-### Required Environments
-Create these environments in your repository settings:
-- `staging` - For staging deployments
-- `production` - For production deployments (with protection rules)
+### Expo/EAS Build
+```
+EXPO_TOKEN=your-expo-access-token
+EXPO_ANDROID_KEYSTORE_PASSWORD=your-android-keystore-password
+EXPO_ANDROID_KEY_PASSWORD=your-android-key-password
+EXPO_APPLE_ID=your-apple-developer-id
+EXPO_APPLE_APP_SPECIFIC_PASSWORD=your-app-specific-password
+```
 
-## 🛡️ Security Features
+### Code Analysis & Security
+```
+SONAR_TOKEN=your-sonarcloud-token
+SNYK_TOKEN=your-snyk-api-token
+OPENAI_API_KEY=your-openai-api-key  # For AI code review
+```
 
-### Multi-Layer Security Scanning
-- **Container Security**: Trivy vulnerability scanning
-- **Dependency Security**: Snyk and npm audit
-- **Code Security**: CodeQL and Semgrep SAST
-- **Secret Detection**: TruffleHog and custom patterns
-- **Infrastructure Security**: Docker and Kubernetes security
+### Notifications
+```
+SLACK_WEBHOOK_URL=your-slack-webhook-url
+EMAIL_USERNAME=your-smtp-username
+EMAIL_PASSWORD=your-smtp-password
+NOTIFICATION_EMAIL=recipient@example.com
+```
 
-### Security-First Approach
-- All workflows include security validation
-- Automated security issue creation
-- Security gate before deployments
-- Comprehensive security reporting
-- Zero-trust deployment model
+### Database & Infrastructure
+```
+REDIS_PASSWORD=your-redis-password
+MONGO_USERNAME=your-mongodb-username
+MONGO_PASSWORD=your-mongodb-password
+GRAFANA_PASSWORD=your-grafana-admin-password
+```
 
-## 📊 Performance Monitoring
+## 📋 Secret Setup Instructions
 
-### Automated Testing
-- **API Performance**: Response time and throughput
-- **Database Performance**: Query optimization and indexing
-- **Mobile Performance**: Bundle size and rendering
-- **Load Testing**: Concurrent user simulation
-- **Memory Analysis**: Heap usage and optimization
+### 1. Docker Hub Setup
+1. Create account at [Docker Hub](https://hub.docker.com)
+2. Go to Account Settings → Security → New Access Token
+3. Copy the token and username to GitHub secrets
 
-### Performance Gates
-- Response time thresholds
-- Error rate monitoring
-- Resource utilization limits
-- Performance regression detection
+### 2. Expo Setup
+1. Install Expo CLI: `npm install -g @expo/cli`
+2. Login: `expo login`
+3. Generate token: `expo whoami` then get token from Expo dashboard
+4. Add token to GitHub secrets
 
-## 🚀 Deployment Strategy
+### 3. SonarCloud Setup
+1. Go to [SonarCloud](https://sonarcloud.io)
+2. Import your GitHub repository
+3. Generate a token in User → My Account → Security
+4. Add token to GitHub secrets
 
-### Environment Progression
-1. **Development** → 2. **Staging** → 3. **Production**
+### 4. Slack Integration
+1. Create a Slack app in your workspace
+2. Add Incoming Webhooks feature
+3. Copy webhook URL to GitHub secrets
 
-### Deployment Features
-- Blue-green deployments
-- Automated rollback capabilities
-- Health check validation
-- Canary releases (configurable)
-- Zero-downtime deployments
+## 🔧 Environment Variables
 
-## 📱 Mobile App Automation
+Create a `.env.example` file with these variables:
+```
+NODE_ENV=development
+PORT=3000
+REDIS_URL=redis://localhost:6379
+MONGODB_URL=mongodb://localhost:27017/secureguardian
+JWT_SECRET=your-jwt-secret-key
+ENCRYPTION_KEY=your-encryption-key
+API_RATE_LIMIT=100
+```
 
-### Expo Integration
-- Automated builds for iOS and Android
-- Over-the-air (OTA) update deployment
-- App store submission preparation
-- Performance optimization analysis
+## 🚀 Quick Setup Script
 
-### Mobile Security
-- Certificate pinning validation
-- Secure storage usage verification
-- Root/jailbreak detection
-- Privacy compliance checks
+Run this script to set up your development environment:
 
-## 🔍 Monitoring & Alerting
+```bash
+#!/bin/bash
+# setup-secrets.sh
 
-### Automated Notifications
-- Security vulnerability alerts
-- Performance degradation warnings
-- Deployment status updates
-- Test failure notifications
+echo "🔐 Setting up SecureGuardian secrets..."
 
-### Reporting
-- Comprehensive security reports
-- Performance analysis summaries
-- Dependency update reports
-- Release notes generation
+# Check if GitHub CLI is installed
+if ! command -v gh &> /dev/null; then
+    echo "❌ GitHub CLI not found. Please install it first."
+    echo "Visit: https://cli.github.com/"
+    exit 1
+fi
 
-## 🎯 Best Practices Implemented
+# Set secrets (you'll need to provide the values)
+read -p "Enter your Docker Hub username: " DOCKER_USERNAME
+read -s -p "Enter your Docker Hub password/token: " DOCKER_PASSWORD
+echo
 
-### Security
-- Least privilege principle
-- Multi-factor authentication
-- Encrypted secrets management
-- Audit trail maintenance
+gh secret set DOCKER_USERNAME -b"$DOCKER_USERNAME"
+gh secret set DOCKER_PASSWORD -b"$DOCKER_PASSWORD"
 
-### Performance
-- Caching strategies
-- Resource optimization
-- Scalability planning
-- Performance budgets
+echo "✅ Basic secrets configured!"
+echo "📝 Please configure the remaining secrets manually in GitHub."
+```
 
-### Code Quality
-- Automated testing
-- Code coverage requirements
-- Static analysis
-- Documentation standards
+## 🔍 Verification
 
-## 🚀 Quick Start
+To verify your secrets are working:
 
-1. **Fork or clone** the SecureGuardian repository
-2. **Add required secrets** to your repository settings
-3. **Create environments** (staging, production)
-4. **Push changes** to trigger workflows
-5. **Monitor** workflow execution in Actions tab
+1. Push a commit to trigger the workflows
+2. Check the Actions tab for any secret-related errors
+3. Review workflow logs for authentication issues
 
-## 📚 Workflow Customization
+## 🛡️ Security Best Practices
 
-### Modifying Workflows
-Each workflow is designed to be modular and customizable:
+- Use tokens with minimal required permissions
+- Regularly rotate API tokens and passwords
+- Never commit secrets to your repository
+- Use environment-specific secrets for different deployment stages
+- Monitor secret usage in workflow logs
 
-- **Environment variables**: Modify in workflow files
-- **Testing frameworks**: Update in respective job steps
-- **Deployment targets**: Configure in deployment jobs
-- **Security tools**: Add/remove in security jobs
+## 📞 Support
 
-### Adding New Components
-To add new components to the CI/CD pipeline:
-
-1. Create component-specific jobs
-2. Add to dependency matrix
-3. Include in testing strategy
-4. Update security scanning scope
-
-## 🆘 Support & Troubleshooting
-
-### Common Issues
-- **Secret Configuration**: Ensure all required secrets are set
-- **Environment Setup**: Verify environment configurations
-- **Permission Issues**: Check GitHub token permissions
-- **Resource Limits**: Monitor GitHub Actions usage
-
-### Getting Help
-- 📖 [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- 🐛 [Create an Issue](../../issues)
-- 💬 [Community Discussions](../../discussions)
-
----
-
-**Note**: These workflows are specifically designed for the SecureGuardian security monitoring platform and implement industry best practices for security-focused applications.
-
-Last updated: $(date)
+If you encounter issues with secret configuration:
+1. Check the workflow logs for specific error messages
+2. Verify secret names match exactly (case-sensitive)
+3. Ensure tokens have the required permissions
+4. Test secrets manually before adding to workflows
