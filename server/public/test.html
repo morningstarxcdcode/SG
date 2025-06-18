@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SecureGuardian Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="background: linear-gradient(135deg, #1a73e8, #4285f4); color: white; font-family: Arial, sans-serif; margin: 0; padding: 40px; min-height: 100vh; box-sizing: border-box;">
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="font-size: 48px; margin: 0;">🛡️ SecureGuardian</h1>
+        <h2 style="margin: 10px 0; opacity: 0.9;">Advanced Personal Security Platform</h2>
+        <p style="font-size: 18px; opacity: 0.8;">✅ Server Status: Online</p>
+    </div>
+    
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                <h3 style="margin-top: 0;">🔍 AI Threat Detection</h3>
+                <p>Real-time scanning and analysis of network vulnerabilities using machine learning.</p>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                <h3 style="margin-top: 0;">🚨 Emergency Response</h3>
+                <p>One-tap SOS with automated evidence collection and emergency service integration.</p>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                <h3 style="margin-top: 0;">📱 Mobile App</h3>
+                <p>Beautiful React Native application with Material You design and real-time notifications.</p>
+            </div>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 40px;">
+            <h2 style="margin-top: 0;">🚀 Live API Demo</h2>
+            <p>Test the SecureGuardian API endpoints:</p>
+            
+            <button onclick="testAPI('health')" style="background: #f95d6a; color: white; border: none; padding: 12px 24px; margin: 8px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                Health Check
+            </button>
+            
+            <button onclick="testAPI('scan')" style="background: #f95d6a; color: white; border: none; padding: 12px 24px; margin: 8px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                Threat Scan
+            </button>
+            
+            <button onclick="testAPI('emergency')" style="background: #f95d6a; color: white; border: none; padding: 12px 24px; margin: 8px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                Emergency Contacts
+            </button>
+            
+            <div id="results" style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: left; display: none;">
+                <!-- Results will appear here -->
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+            <p style="margin: 0; font-size: 16px;">🏆 Built for Hackathons • Open Source • Privacy-First • Real-World Impact</p>
+            <p style="margin: 10px 0 0 0; font-family: monospace; font-size: 14px;">Backend: http://localhost:3000 | Mobile: React Native + Expo</p>
+        </div>
+    </div>
+    
+    <script>
+        async function testAPI(type) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.innerHTML = '<p>🔄 Loading...</p>';
+            
+            try {
+                let url, title;
+                
+                switch(type) {
+                    case 'health':
+                        url = '/api/health';
+                        title = '✅ Server Health Check';
+                        break;
+                    case 'scan':
+                        url = '/api/threat/scan';
+                        title = '🛡️ Threat Scan Results';
+                        break;
+                    case 'emergency':
+                        url = '/api/emergency/contacts';
+                        title = '📞 Emergency Contacts';
+                        break;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                results.innerHTML = `
+                    <h4>${title}</h4>
+                    <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <h4>❌ API Test Failed</h4>
+                    <p>Error: ${error.message}</p>
+                    <p>Make sure the backend server is running on port 3000</p>
+                `;
+            }
+        }
+        
+        // Test health check on load
+        window.addEventListener('load', () => testAPI('health'));
+    </script>
+    
+</body>
+</html>

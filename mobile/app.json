@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "SecureGuardian",
+    "slug": "secureguardian",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a73e8"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.secureguardian.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SecureGuardian needs location access to detect nearby security threats and provide location-based protection.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "SecureGuardian uses location services to monitor for security threats and enable emergency response features.",
+        "NSCameraUsageDescription": "SecureGuardian needs camera access to capture evidence during security incidents.",
+        "NSMicrophoneUsageDescription": "SecureGuardian needs microphone access to record audio evidence during emergencies.",
+        "NSFaceIDUsageDescription": "SecureGuardian uses Face ID for secure authentication and app access."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a73e8"
+      },
+      "package": "com.secureguardian.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_STATE",
+        "ACCESS_NETWORK_STATE",
+        "INTERNET",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-location",
+      "expo-camera",
+      "expo-notifications"
+    ],
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#1a73e8"
+    }
+  }
+}

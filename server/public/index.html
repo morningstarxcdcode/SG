@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuardian - Advanced Personal Security Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card p {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem;
+            text-align: center;
+        }
+
+        .demo-button {
+            background: #f95d6a;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .demo-button:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 194, 154, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00c29a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .api-endpoint {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 0.5rem 0;
+            word-break: break-all;
+        }
+
+        .threat-simulator {
+            margin-top: 1rem;
+        }
+
+        .threat-card {
+            background: rgba(249, 93, 106, 0.2);
+            border: 1px solid #f95d6a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: left;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body style="background: #1a73e8; color: white; font-family: Arial, sans-serif; padding: 20px;">
+    <!-- Fallback styling in case CSS doesn't load -->
+    <noscript>
+        <style>
+            body { background: #1a73e8 !important; color: white !important; }
+        </style>
+    </noscript>
+    
+    <div class="header">
+        <div class="logo">🛡️</div>
+        <div class="title">SecureGuardian</div>
+        <div class="subtitle">Advanced Personal Security Platform</div>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            Server Status: Online
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="card">
+            <h3>🔍 AI-Powered Threat Detection</h3>
+            <p>Real-time scanning and analysis of network vulnerabilities using machine learning algorithms. Detects malicious WiFi networks, suspicious activities, and potential security threats.</p>
+        </div>
+
+        <div class="card">
+            <h3>🚨 Emergency Response System</h3>
+            <p>One-tap SOS functionality with automated evidence collection, location sharing, and integration with emergency services. Silent panic button for discreet emergency alerts.</p>
+        </div>
+
+        <div class="card">
+            <h3>📱 Cross-Platform Mobile App</h3>
+            <p>Beautiful React Native application with Material You design, real-time notifications, and seamless user experience across iOS and Android platforms.</p>
+        </div>
+
+        <div class="card">
+            <h3>🔐 Privacy-First Architecture</h3>
+            <p>End-to-end encryption, zero-knowledge security model, and privacy-preserving threat detection that protects user data while maintaining security effectiveness.</p>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🚀 Live API Demonstration</h2>
+        <p>Click the buttons below to test the live SecureGuardian API endpoints:</p>
+        
+        <button class="demo-button" onclick="testHealthCheck()">Health Check</button>
+        <button class="demo-button" onclick="performThreatScan()">Threat Scan</button>
+        <button class="demo-button" onclick="showEmergencyContacts()">Emergency Contacts</button>
+        
+        <div id="demo-results"></div>
+    </div>
+
+    <div class="footer">
+        <p>🏆 Built for Hackathons • Open Source • Privacy-First • Real-World Impact</p>
+        <div class="api-endpoint">Backend API: http://localhost:3000</div>
+        <div class="api-endpoint">Mobile App: React Native + Expo</div>
+    </div>
+
+    <script>
+        async function testHealthCheck() {
+            const resultsDiv = document.getElementById('demo-results');
+            resultsDiv.innerHTML = '<p>🔄 Checking server health...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="threat-card">
+                        <h4>✅ Server Health Check</h4>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        <p><strong>Version:</strong> ${data.version}</p>
+                        <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="threat-card">
+                        <h4>❌ Server Health Check Failed</h4>
+                        <p>Error: ${error.message}</p>
+                        <p>Make sure the backend server is running on port 3000</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function performThreatScan() {
+            const resultsDiv = document.getElementById('demo-results');
+            resultsDiv.innerHTML = '<p>🔍 Performing threat scan...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/threat/scan');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const threats = data.data.threats;
+                    const riskLevel = data.data.riskLevel;
+                    
+                    let threatHTML = `
+                        <div class="threat-card">
+                            <h4>🛡️ Threat Scan Results</h4>
+                            <p><strong>Risk Level:</strong> ${riskLevel}</p>
+                            <p><strong>Threats Found:</strong> ${threats.length}</p>
+                            <p><strong>Scan Time:</strong> ${new Date(data.data.timestamp).toLocaleString()}</p>
+                    `;
+                    
+                    if (threats.length > 0) {
+                        threatHTML += '<p><strong>Detected Threats:</strong></p><ul>';
+                        threats.forEach(threat => {
+                            threatHTML += `<li>${threat.type}: ${threat.description} (${threat.severity})</li>`;
+                        });
+                        threatHTML += '</ul>';
+                    } else {
+                        threatHTML += '<p>✅ No threats detected - Environment is secure!</p>';
+                    }
+                    
+                    threatHTML += '</div>';
+                    resultsDiv.innerHTML = threatHTML;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="threat-card">
+                        <h4>❌ Threat Scan Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function showEmergencyContacts() {
+            const resultsDiv = document.getElementById('demo-results');
+            resultsDiv.innerHTML = '<p>📞 Loading emergency contacts...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/emergency/contacts');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const contacts = data.data.emergencyContacts;
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="threat-card">
+                            <h4>📞 Emergency Contacts</h4>
+                            <p><strong>Police:</strong> ${contacts.police}</p>
+                            <p><strong>Fire Department:</strong> ${contacts.fire}</p>
+                            <p><strong>Medical Emergency:</strong> ${contacts.medical}</p>
+                            <p><strong>Cybersecurity Hotline:</strong> ${contacts.cybersecurity}</p>
+                            <p><strong>Instructions:</strong> Use SecureGuardian emergency button for integrated response</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="threat-card">
+                        <h4>❌ Emergency Contacts Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run health check on page load
+        document.addEventListener('DOMContentLoaded', testHealthCheck);
+    </script>
+</body>
+</html>
